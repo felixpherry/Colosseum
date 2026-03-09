@@ -1,5 +1,6 @@
 {
   "name": "@colosseum/db",
+  "description": "Database schema, migrations, and Drizzle client for Colosseum",
   "version": "0.0.0",
   "private": true,
   "main": "./src/index.ts",
