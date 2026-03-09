@@ -11,9 +11,7 @@ export const submissions = pgTable(
       .references(() => tournaments.id, {
         onDelete: 'cascade',
       }),
-    submitterId: uuid()
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+    submitterId: uuid().references(() => users.id, { onDelete: 'set null' }),
     title: text().notNull(),
     imageUrl: text(),
     createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
