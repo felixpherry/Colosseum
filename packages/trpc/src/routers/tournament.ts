@@ -1,8 +1,14 @@
 import { router, publicProcedure, protectedProcedure } from '../trpc';
-import { eq, tournaments } from '@colosseum/db';
+import { eq, submissions, tournaments } from '@colosseum/db';
 import { z } from 'zod';
 import { calculateTotalRounds, generateSlug } from '@colosseum/lib';
 import { TRPCError } from '@trpc/server';
+import { generateBracketData } from '../../../lib/src/bracket';
+import {
+  activateReadyMatchups,
+  advanceByes,
+  insertBracket,
+} from '../services/bracket';
 
 export const tournamentRouter = router({
   // Anyone can list tournaments
@@ -150,5 +156,65 @@ export const tournamentRouter = router({
         })
         .where(eq(tournaments.id, input.tournamentId))
         .returning();
+    }),
+
+  startTournament: protectedProcedure
+    .input(
+      z.object({
+        tournamentId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const results = await ctx.db
+        .select()
+        .from(tournaments)
+        .where(eq(tournaments.id, input.tournamentId));
+
+      if (!results[0]) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+        });
+      }
+      const tournament = results[0];
+      if (tournament.creatorId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+        });
+      }
+
+      if (tournament.status !== 'accepting_submissions') {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+        });
+      }
+
+      const submissionEntries = await ctx.db
+        .select()
+        .from(submissions)
+        .where(eq(submissions.tournamentId, input.tournamentId));
+
+      if (submissionEntries.length < 3) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'Submission entries must be greater than 2',
+        });
+      }
+
+      const bracketData = generateBracketData(
+        submissionEntries,
+        tournament.size,
+      );
+      const insertedMatchups = await insertBracket(
+        ctx.db,
+        tournament.id,
+        bracketData,
+      );
+      await advanceByes(ctx.db, tournament.id);
+      await activateReadyMatchups(
+        ctx.db,
+        tournament.id,
+        tournament.matchupDurationHours,
+      );
+      return insertedMatchups;
     }),
 });
