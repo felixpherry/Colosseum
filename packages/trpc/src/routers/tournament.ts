@@ -1,12 +1,38 @@
 import { router, publicProcedure, protectedProcedure } from '../trpc';
-import { tournaments } from '@colosseum/db';
+import { eq, tournaments } from '@colosseum/db';
 import { z } from 'zod';
+import { calculateTotalRounds, generateSlug } from '@colosseum/lib';
+import { TRPCError } from '@trpc/server';
 
 export const tournamentRouter = router({
   // Anyone can list tournaments
   list: publicProcedure.query(async ({ ctx }) => {
     return ctx.db.select().from(tournaments);
   }),
+
+  getBySlug: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const results = await ctx.db
+        .select()
+        .from(tournaments)
+        .where(eq(tournaments.slug, input.slug));
+      if (!results[0]) {
+        throw new TRPCError({ code: 'NOT_FOUND' });
+      }
+      return results[0];
+    }),
+
+  listByCategory: publicProcedure
+    .input(z.object({ category: z.string().optional() }))
+    .query(async ({ ctx, input }) => {
+      return await ctx.db
+        .select()
+        .from(tournaments)
+        .where(
+          input.category ? eq(tournaments.category, input.category) : undefined,
+        );
+    }),
 
   // Only logged-in users can create
   create: protectedProcedure
@@ -24,9 +50,105 @@ export const tournamentRouter = router({
         matchupDurationHours: z.number().min(1).max(48).default(24),
       }),
     )
-    .mutation(async () => {
-      // We'll implement this properly later
-      // For now, just a placeholder to test the wiring
-      return { success: true };
+    .mutation(async ({ input, ctx }) => {
+      const slug = generateSlug(input.title);
+      const totalRounds = calculateTotalRounds(input.size);
+      return await ctx.db
+        .insert(tournaments)
+        .values({
+          ...input,
+          slug,
+          totalRounds,
+          creatorId: ctx.session.user.id,
+        })
+        .returning();
+    }),
+
+  getMyTournaments: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.db
+      .select()
+      .from(tournaments)
+      .where(eq(tournaments.creatorId, ctx.session.user.id));
+  }),
+
+  openSubmissions: protectedProcedure
+    .input(
+      z.object({
+        tournamentId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const results = await ctx.db
+        .select()
+        .from(tournaments)
+        .where(eq(tournaments.id, input.tournamentId));
+
+      if (!results[0]) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+        });
+      }
+
+      const tournament = results[0];
+      if (tournament.creatorId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+        });
+      }
+      if (tournament.status !== 'draft') {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+        });
+      }
+
+      return await ctx.db
+        .update(tournaments)
+        .set({
+          status: 'accepting_submissions',
+        })
+        .where(eq(tournaments.id, input.tournamentId))
+        .returning();
+    }),
+
+  cancel: protectedProcedure
+    .input(
+      z.object({
+        tournamentId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const results = await ctx.db
+        .select()
+        .from(tournaments)
+        .where(eq(tournaments.id, input.tournamentId));
+      if (!results[0]) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+        });
+      }
+      const tournament = results[0];
+
+      if (tournament.creatorId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+        });
+      }
+
+      if (
+        tournament.status !== 'draft' &&
+        tournament.status !== 'accepting_submissions'
+      ) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+        });
+      }
+
+      return ctx.db
+        .update(tournaments)
+        .set({
+          status: 'cancelled',
+        })
+        .where(eq(tournaments.id, input.tournamentId))
+        .returning();
     }),
 });
