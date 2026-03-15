@@ -1,17 +1,15 @@
 import type { MatchupData } from '@colosseum/lib';
 import {
-  db as database,
   matchups,
   tournaments,
   eq,
   and,
   isNotNull,
+  DbOrTx,
 } from '@colosseum/db';
 
-type DB = typeof database;
-
 export async function insertBracket(
-  db: DB,
+  db: DbOrTx,
   tournamentId: string,
   bracketData: MatchupData[],
 ) {
@@ -36,7 +34,7 @@ export async function insertBracket(
   });
 }
 
-export async function advanceByes(db: DB, tournamentId: string) {
+export async function advanceByes(db: DbOrTx, tournamentId: string) {
   const byeMatchups = await db
     .select()
     .from(matchups)
@@ -70,7 +68,7 @@ export async function advanceByes(db: DB, tournamentId: string) {
 }
 
 export async function activateReadyMatchups(
-  db: DB,
+  db: DbOrTx,
   tournamentId: string,
   matchupDurationHours: number,
 ) {
