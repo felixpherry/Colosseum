@@ -5,6 +5,7 @@ import {
   integer,
   timestamp,
   check,
+  index,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { users } from './auth';
@@ -37,6 +38,14 @@ export const tournaments = pgTable(
     check(
       'status_check',
       sql`${table.status} IN ('draft', 'accepting_submissions', 'in_progress', 'completed', 'cancelled')`,
+    ),
+    index('idx_tournaments_search').using(
+      'gin',
+      sql`(
+        setweight(to_tsvector('english', coalesce(${table.title}, '')), 'A') ||
+        setweight(to_tsvector('english', coalesce(${table.description}, '')), 'B') ||
+        setweight(to_tsvector('english', coalesce(${table.category}, '')), 'C')
+      )`,
     ),
   ],
 );
