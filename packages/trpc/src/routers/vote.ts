@@ -12,6 +12,18 @@ export const voteRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      if (ctx.rateLimit) {
+        const ipCheck = await ctx.rateLimit.checkIp(ctx.clientIp);
+        if (!ipCheck.success) {
+          throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
+        }
+
+        const userCheck = await ctx.rateLimit.checkUser(ctx.session.user.id);
+        if (!userCheck.success) {
+          throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
+        }
+      }
+
       return await ctx.db.transaction(async (tx) => {
         const results = await tx
           .select()

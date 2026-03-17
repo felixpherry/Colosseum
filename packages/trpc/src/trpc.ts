@@ -3,8 +3,10 @@ import { db } from '@colosseum/db';
 import superjson from 'superjson';
 
 // Context — available to every procedure
+// Updated Context type in packages/trpc/src/trpc.ts
 export type Context = {
   db: typeof db;
+  clientIp: string;
   session: {
     user: {
       id: string;
@@ -13,6 +15,10 @@ export type Context = {
       image?: string | null;
     };
   } | null;
+  rateLimit?: {
+    checkIp: (ip: string) => Promise<{ success: boolean }>;
+    checkUser: (userId: string) => Promise<{ success: boolean }>;
+  };
 };
 
 // Initialize tRPC with context and superjson transformer
