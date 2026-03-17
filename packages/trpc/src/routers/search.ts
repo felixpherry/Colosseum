@@ -1,6 +1,6 @@
 import z from 'zod';
 import { publicProcedure, router } from '../trpc';
-import { sql } from '@colosseum/db';
+import { desc, eq, sql, tournaments, tournamentStats } from '@colosseum/db';
 
 type SearchResult = {
   id: string;
@@ -40,5 +40,22 @@ export const searchRouter = router({
         LIMIT ${input.limit}
     `);
       return results;
+    }),
+  trending: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().max(50).default(20),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      return await ctx.db
+        .select()
+        .from(tournamentStats)
+        .innerJoin(
+          tournaments,
+          eq(tournamentStats.tournamentId, tournaments.id),
+        )
+        .orderBy(desc(tournamentStats.trendingScore))
+        .limit(input.limit);
     }),
 });

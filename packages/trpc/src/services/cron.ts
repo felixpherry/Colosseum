@@ -1,6 +1,7 @@
 import { db, matchups, eq, and, lte } from '@colosseum/db';
 import { resolveMatchup } from './resolve';
 import { getBoss } from './worker';
+import { refreshTrendingScores } from './trending';
 
 export async function startCronJobs() {
   const boss = await getBoss();
@@ -25,5 +26,10 @@ export async function startCronJobs() {
         { singletonKey: matchup.id },
       );
     }
+  });
+
+  await boss.schedule('refresh-trending', '*/5 * * * *', {});
+  await boss.work('refresh-trending', async () => {
+    await refreshTrendingScores(db);
   });
 }
