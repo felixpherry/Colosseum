@@ -1,16 +1,18 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { TRPCProvider } from '@/trpc/provider';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+import { Inter, JetBrains_Mono } from 'next/font/google';
+import { ThemeProvider } from '@/components/theme-provider';
+
+const inter = Inter({
   subsets: ['latin'],
+  variable: '--font-sans',
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
+  variable: '--font-mono',
 });
 
 export const metadata: Metadata = {
@@ -24,11 +26,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        <TRPCProvider>{children}</TRPCProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TRPCProvider>{children}</TRPCProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
