@@ -4,6 +4,7 @@ import { TRPCProvider } from '@/trpc/provider';
 
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
+import { GlobalTickerProvider } from '@/components/global-ticker-provider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -36,7 +37,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TRPCProvider>{children}</TRPCProvider>
+          <GlobalTickerProvider>
+            <TRPCProvider>{children}</TRPCProvider>
+          </GlobalTickerProvider>
         </ThemeProvider>
       </body>
     </html>
