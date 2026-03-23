@@ -70,7 +70,7 @@ export const CountdownTimer = memo(function CountdownTimer({
         )}
       >
         Closes in{' '}
-        <span className="font-mono tabular-nums">
+        <span suppressHydrationWarning className="font-mono tabular-nums">
           {formatTimeLabel(hours, minutes, seconds)}
         </span>
       </span>
