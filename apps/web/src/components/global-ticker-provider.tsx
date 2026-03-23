@@ -20,9 +20,7 @@ export function GlobalTickerProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(intervalId);
   }, []);
 
-  return (
-    <TickerContext.Provider value={tick}>{children}</TickerContext.Provider>
-  );
+  return <TickerContext value={tick}>{children}</TickerContext>;
 }
 
 export function useTick(): number {
