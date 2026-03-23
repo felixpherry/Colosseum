@@ -9,6 +9,7 @@ import {
   advanceByes,
   insertBracket,
 } from '../services/bracket';
+import { createTournamentSchema } from '@colosseum/types';
 
 export const tournamentRouter = router({
   // Anyone can list tournaments
@@ -42,20 +43,7 @@ export const tournamentRouter = router({
 
   // Only logged-in users can create
   create: protectedProcedure
-    .input(
-      z.object({
-        title: z.string().min(3).max(100),
-        description: z.string().max(500).optional(),
-        category: z.string().min(1),
-        size: z.union([
-          z.literal(8),
-          z.literal(16),
-          z.literal(32),
-          z.literal(64),
-        ]),
-        matchupDurationHours: z.number().min(1).max(48).default(24),
-      }),
-    )
+    .input(createTournamentSchema)
     .mutation(async ({ input, ctx }) => {
       const slug = generateSlug(input.title);
       const totalRounds = calculateTotalRounds(input.size);
