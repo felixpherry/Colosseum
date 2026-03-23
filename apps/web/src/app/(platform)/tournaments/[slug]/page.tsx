@@ -5,6 +5,7 @@ import { SubmissionForm } from './submission-form';
 import { OpenSubmissionsButton } from './open-submissions-button';
 import { StartTournamentButton } from './start-tournament-button';
 import { MatchupList } from './matchup-list';
+import { BracketView } from '@/components/bracket/bracket-view';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Users, Clock, Swords } from 'lucide-react';
 
@@ -88,7 +89,7 @@ export default async function TournamentDetailsPage({
 
   return (
     <div className="min-h-screen bg-surface-50">
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-8">
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
         <TournamentHeader tournament={tournament} />
 
         {/* ── Draft ── */}
@@ -172,12 +173,27 @@ export default async function TournamentDetailsPage({
 
         {/* ── In Progress ── */}
         {tournament.status === 'in_progress' && (
-          <MatchupList tournamentId={tournament.id} />
+          <div className="space-y-8">
+            {/* Bracket visualization */}
+            <div>
+              <h2 className="text-h3 text-text-900 mb-4">Bracket</h2>
+              <BracketView
+                tournamentId={tournament.id}
+                totalRounds={tournament.totalRounds}
+              />
+            </div>
+
+            {/* Matchup list (flat view) */}
+            <div>
+              <h2 className="text-h3 text-text-900 mb-4">All Matchups</h2>
+              <MatchupList tournamentId={tournament.id} />
+            </div>
+          </div>
         )}
 
         {/* ── Completed ── */}
         {tournament.status === 'completed' && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {tournament.championSubmissionId && (
               <div className="bg-surface-0 border border-surface-200 rounded-lg p-6 text-center space-y-2">
                 <Trophy className="size-8 text-tier-gold mx-auto" />
@@ -189,7 +205,14 @@ export default async function TournamentDetailsPage({
                 </p>
               </div>
             )}
-            <MatchupList tournamentId={tournament.id} />
+
+            <div>
+              <h2 className="text-h3 text-text-900 mb-4">Final Bracket</h2>
+              <BracketView
+                tournamentId={tournament.id}
+                totalRounds={tournament.totalRounds}
+              />
+            </div>
           </div>
         )}
 
