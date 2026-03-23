@@ -13,6 +13,7 @@ export {
   isNull,
   lt,
   lte,
+  inArray,
 } from 'drizzle-orm';
 export type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 export type DbOrTx = typeof db | Transaction;

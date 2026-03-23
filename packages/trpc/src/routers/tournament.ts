@@ -1,5 +1,5 @@
 import { router, publicProcedure, protectedProcedure } from '../trpc';
-import { eq, submissions, tournaments } from '@colosseum/db';
+import { eq, inArray, matchups, submissions, tournaments } from '@colosseum/db';
 import { z } from 'zod';
 import { calculateTotalRounds, generateSlug } from '@colosseum/lib';
 import { TRPCError } from '@trpc/server';
@@ -204,5 +204,37 @@ export const tournamentRouter = router({
         tournament.matchupDurationHours,
       );
       return insertedMatchups;
+    }),
+  listMatchups: publicProcedure
+    .input(z.object({ tournamentId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const results = await ctx.db
+        .select()
+        .from(matchups)
+        .where(eq(matchups.tournamentId, input.tournamentId))
+        .orderBy(matchups.round, matchups.position);
+
+      // Fetch submission details for entries
+      const submissionIds = results.flatMap((m) =>
+        [m.entryAId, m.entryBId, m.winnerId].filter(Boolean),
+      ) as string[];
+
+      const uniqueIds = [...new Set(submissionIds)];
+      const subs =
+        uniqueIds.length > 0
+          ? await ctx.db
+              .select()
+              .from(submissions)
+              .where(inArray(submissions.id, uniqueIds))
+          : [];
+
+      const subMap = new Map(subs.map((s) => [s.id, s]));
+
+      return results.map((m) => ({
+        ...m,
+        entryA: m.entryAId ? (subMap.get(m.entryAId) ?? null) : null,
+        entryB: m.entryBId ? (subMap.get(m.entryBId) ?? null) : null,
+        winner: m.winnerId ? (subMap.get(m.winnerId) ?? null) : null,
+      }));
     }),
 });

@@ -88,7 +88,7 @@ export function CreateTournamentForm() {
                     <Input
                       id={field.name}
                       name={field.name}
-                      value={field.state.value}
+                      value={field.state.value ?? ''}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       aria-invalid={isInvalid}
@@ -113,7 +113,7 @@ export function CreateTournamentForm() {
                       <InputGroupTextarea
                         id={field.name}
                         name={field.name}
-                        value={field.state.value}
+                        value={field.state.value ?? ''}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         rows={6}
@@ -144,7 +144,7 @@ export function CreateTournamentForm() {
                     <Input
                       id={field.name}
                       name={field.name}
-                      value={field.state.value}
+                      value={field.state.value ?? ''}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
                       aria-invalid={isInvalid}
@@ -167,7 +167,7 @@ export function CreateTournamentForm() {
                   <Field data-invalid={isInvalid}>
                     <FieldLabel htmlFor={field.name}>Bracket Size</FieldLabel>
                     <Select
-                      value={String(field.state.value)}
+                      value={String(field.state.value ?? '')}
                       onValueChange={(v) =>
                         field.handleChange(Number(v) as 8 | 16 | 32 | 64)
                       }
@@ -206,7 +206,7 @@ export function CreateTournamentForm() {
                       id={field.name}
                       type="number"
                       name={field.name}
-                      value={field.state.value}
+                      value={field.state.value ?? ''}
                       onBlur={field.handleBlur}
                       onChange={(e) =>
                         field.handleChange(Number(e.target.value))
