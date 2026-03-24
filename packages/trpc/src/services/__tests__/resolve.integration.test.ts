@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   cleanDb,
   createTestUser,
@@ -6,12 +6,20 @@ import {
   createTestSubmissions,
   testDb,
 } from './setup';
-import { eq, and, matchups, votes, tournaments, userRatings } from '@colosseum/db';
+import {
+  eq,
+  and,
+  matchups,
+  votes,
+  tournaments,
+  userRatings,
+} from '@colosseum/db';
 import { generateBracketData } from '@colosseum/lib';
 import { insertBracket, advanceByes, activateReadyMatchups } from '../bracket';
 import { resolveMatchup } from '../resolve';
 
 async function setupAndVote() {
+  await cleanDb();
   const creator = await createTestUser('Creator');
   const submitters = [];
   for (let i = 1; i <= 8; i++) {
@@ -102,8 +110,6 @@ async function voteAndExpire(
 }
 
 describe('matchup resolution', () => {
-  beforeEach(cleanDb);
-
   it('resolves matchup: correct winner, advances to next round', async () => {
     const { activeMatchups } = await setupAndVote();
     const m = activeMatchups[0];
@@ -156,10 +162,7 @@ describe('matchup resolution', () => {
       .select()
       .from(matchups)
       .where(
-        and(
-          eq(matchups.tournamentId, m.tournamentId),
-          eq(matchups.round, 2),
-        ),
+        and(eq(matchups.tournamentId, m.tournamentId), eq(matchups.round, 2)),
       );
 
     // At least one round 2 matchup should be active with both entries
@@ -173,8 +176,7 @@ describe('matchup resolution', () => {
   });
 
   it('completes tournament when finals are resolved', async () => {
-    const { tournament, activeMatchups, voters, submitters } =
-      await setupAndVote();
+    const { tournament, activeMatchups, voters } = await setupAndVote();
 
     // Resolve all round 1 matchups
     for (const m of activeMatchups) {
@@ -275,10 +277,7 @@ describe('matchup resolution', () => {
     expect(ratings.length).toBe(2);
 
     // Find winner and loser ratings
-    const [resolvedMatchup] = await testDb
-      .select()
-      .from(matchups)
-      .where(eq(matchups.id, m.id));
+    await testDb.select().from(matchups).where(eq(matchups.id, m.id));
 
     // Winner voted A (3 votes), so winnerId = entryAId
     // Winner should have rating > 1200, loser < 1200

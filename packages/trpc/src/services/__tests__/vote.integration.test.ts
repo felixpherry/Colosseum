@@ -9,7 +9,6 @@ import {
 import { eq, and, matchups, votes, sql } from '@colosseum/db';
 import { generateBracketData } from '@colosseum/lib';
 import { insertBracket, advanceByes, activateReadyMatchups } from '../bracket';
-import { beforeAll } from 'vitest';
 
 // Helper: set up a tournament with an active matchup
 async function setupActiveMatchup() {
@@ -98,7 +97,7 @@ describe('vote flow', () => {
   >['activeMatchup'];
   let tournament: Awaited<ReturnType<typeof setupActiveMatchup>>['tournament'];
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await cleanDb();
     const result = await setupActiveMatchup();
     activeMatchup = result.activeMatchup;
