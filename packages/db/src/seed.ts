@@ -363,8 +363,14 @@ async function seed() {
       i < names.length * CATEGORIES.length
         ? baseName
         : `${baseName} #${Math.floor(Math.random() * 100)}`;
-    const size = pick<number>(SIZES as unknown as number[]);
+    const entryNames = ENTRY_NAMES[category] ?? ENTRY_NAMES['tech'];
+    const maxEntries = entryNames.length; // 16 max per category
+    const size = Math.min(
+      pick(SIZES as unknown as number[]),
+      Math.pow(2, Math.ceil(Math.log2(maxEntries))),
+    );
     const totalRounds = Math.log2(size);
+
     const status = statusDist[i];
     const createdAt = randomDate(30);
 
