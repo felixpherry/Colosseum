@@ -6,6 +6,12 @@ import { refreshTrendingScores } from './trending';
 export async function startCronJobs() {
   const boss = await getBoss();
 
+  // Create queues first
+  await boss.createQueue('resolve-matchup');
+  await boss.createQueue('close-expired-matchups');
+  await boss.createQueue('refresh-trending');
+
+  // Then register workers
   await boss.work('resolve-matchup', async ([job]) => {
     const data = job.data as { matchupId: string };
     await resolveMatchup(db, data.matchupId);

@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export function CreateTournamentForm() {
   const { mutate } = trpc.tournament.create.useMutation();
@@ -56,8 +57,12 @@ export function CreateTournamentForm() {
     onSubmit: async ({ value }) => {
       mutate(value, {
         onSuccess: (data) => {
+          toast.success('Tournament created!');
           const tournament = data[0];
           router.push(`/tournaments/${tournament.slug}`);
+        },
+        onError: () => {
+          toast.error('Failed to create tournament. Try again.');
         },
       });
     },

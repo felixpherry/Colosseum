@@ -4,6 +4,7 @@ import GitHub from 'next-auth/providers/github';
 import { db } from '@colosseum/db';
 import { users, accounts } from '@colosseum/db';
 import { eq, and } from '@colosseum/db';
+import { env } from '@/env';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [Google, GitHub],
@@ -109,7 +110,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
   },
-  secret: process.env.AUTH_SECRET,
+  secret: env.AUTH_SECRET,
   session: {
     strategy: 'jwt',
   },

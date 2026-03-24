@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { trpc } from '@/trpc/client';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export function StartTournamentButton({
   tournamentId,
@@ -10,23 +11,31 @@ export function StartTournamentButton({
   tournamentId: string;
 }) {
   const router = useRouter();
-  const { mutate } = trpc.tournament.startTournament.useMutation();
+  const { mutate, isPending } = trpc.tournament.startTournament.useMutation();
+
   return (
     <Button
-      onClick={() => {
+      disabled={isPending}
+      onClick={() =>
         mutate(
-          {
-            tournamentId,
-          },
+          { tournamentId },
           {
             onSuccess: () => {
+              toast.success('Tournament started! Bracket generated.');
               router.refresh();
             },
+            onError: (err) => {
+              if (err.data?.code === 'PRECONDITION_FAILED') {
+                toast.error(err.message || 'Not enough entries to start.');
+              } else {
+                toast.error('Failed to start tournament.');
+              }
+            },
           },
-        );
-      }}
+        )
+      }
     >
-      Start tournament
+      {isPending ? 'Starting...' : 'Start Tournament'}
     </Button>
   );
 }

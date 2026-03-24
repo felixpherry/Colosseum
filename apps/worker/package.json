@@ -1,0 +1,19 @@
+{
+  "name": "@colosseum/worker",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@colosseum/db": "workspace:*",
+    "@colosseum/trpc": "workspace:*",
+    "pg-boss": "^10",
+    "dotenv": "^16"
+  },
+  "devDependencies": {
+    "tsx": "^4"
+  }
+}

@@ -3,13 +3,30 @@
 import { trpc } from '@/trpc/client';
 import { CountdownTimer } from '@/components/countdown-timer';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export function MatchupList({ tournamentId }: { tournamentId: string }) {
   const { data: matchups, refetch } = trpc.tournament.listMatchups.useQuery({
     tournamentId,
   });
+
   const { mutate: castVote } = trpc.vote.cast.useMutation({
-    onSuccess: () => refetch(),
+    onSuccess: () => {
+      toast.success('Vote cast!');
+      refetch();
+    },
+    onError: (err) => {
+      if (err.data?.code === 'TOO_MANY_REQUESTS') {
+        toast.error('Slow down! Wait a few seconds between votes.');
+      } else if (err.data?.code === 'CONFLICT') {
+        toast.error('You already voted on this matchup.');
+      } else if (err.data?.code === 'PRECONDITION_FAILED') {
+        toast.error('This matchup has closed.');
+        refetch();
+      } else {
+        toast.error('Something went wrong. Try again.');
+      }
+    },
   });
 
   if (!matchups)
