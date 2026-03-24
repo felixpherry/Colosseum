@@ -104,26 +104,6 @@ describe('vote flow', () => {
     tournament = result.tournament;
   });
 
-  beforeEach(async () => {
-    // Only clean votes between tests — leave tournament/matchups intact
-    await testDb.delete(votes);
-    // Reset vote counts
-    await testDb
-      .update(matchups)
-      .set({ votesA: 0, votesB: 0 })
-      .where(eq(matchups.tournamentId, tournament.id));
-    // Reset closesAt in case a test expired it
-    await testDb
-      .update(matchups)
-      .set({ closesAt: new Date(Date.now() + 1000 * 60 * 60) })
-      .where(
-        and(
-          eq(matchups.tournamentId, tournament.id),
-          eq(matchups.status, 'active'),
-        ),
-      );
-  });
-
   it('valid vote inserts a row and increments the correct counter', async () => {
     const voter = await createTestUser('voter');
     await castVote({
