@@ -8,6 +8,7 @@ export default defineConfig({
     include: ['packages/**/*.test.ts', 'apps/**/*.test.ts'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/.next/**'],
     setupFiles: ['./vitest.setup.ts'],
+    fileParallelism: false,
   },
   resolve: {
     alias: {
