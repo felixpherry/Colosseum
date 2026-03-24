@@ -49,16 +49,30 @@ export function BracketView({ tournamentId, totalRounds }: BracketViewProps) {
     (totalRounds - 1) * (ROUND_GAP + CONNECTOR_WIDTH * 2);
 
   // Generate connector lines between rounds
-  const connectors: { x1: number; y1: number; x2: number; y2: number; xMid: number }[] = [];
+  const connectors: {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    xMid: number;
+  }[] = [];
   for (const matchup of matchups) {
     if (matchup.round === 1) continue;
     const parentY = layoutMap.get(`${matchup.round}-${matchup.position}`);
-    const childAY = layoutMap.get(`${matchup.round - 1}-${matchup.position * 2}`);
-    const childBY = layoutMap.get(`${matchup.round - 1}-${matchup.position * 2 + 1}`);
-    if (parentY === undefined || childAY === undefined || childBY === undefined) continue;
+    const childAY = layoutMap.get(
+      `${matchup.round - 1}-${matchup.position * 2}`,
+    );
+    const childBY = layoutMap.get(
+      `${matchup.round - 1}-${matchup.position * 2 + 1}`,
+    );
+    if (parentY === undefined || childAY === undefined || childBY === undefined)
+      continue;
 
-    const parentX = (matchup.round - 1) * (NODE_WIDTH + ROUND_GAP + CONNECTOR_WIDTH * 2);
-    const childX = (matchup.round - 2) * (NODE_WIDTH + ROUND_GAP + CONNECTOR_WIDTH * 2) + NODE_WIDTH;
+    const parentX =
+      (matchup.round - 1) * (NODE_WIDTH + ROUND_GAP + CONNECTOR_WIDTH * 2);
+    const childX =
+      (matchup.round - 2) * (NODE_WIDTH + ROUND_GAP + CONNECTOR_WIDTH * 2) +
+      NODE_WIDTH;
     const parentCenterY = parentY + NODE_HEIGHT / 2;
     const childACenterY = childAY + NODE_HEIGHT / 2;
     const childBCenterY = childBY + NODE_HEIGHT / 2;
@@ -122,7 +136,7 @@ export function BracketView({ tournamentId, totalRounds }: BracketViewProps) {
               stroke="var(--color-surface-200)"
               strokeWidth={1.5}
             />
-          )}
+          ))}
         </svg>
 
         {/* Matchup nodes */}
